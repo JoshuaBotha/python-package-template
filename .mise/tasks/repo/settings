@@ -75,7 +75,13 @@ if want ruleset; then
 }
 JSON
 )
-  id=$(gh api "repos/$repo/rulesets" --jq '.[] | select(.name=="main-protection") | .id' 2>/dev/null || true)
+  # A 403 (plan-gated) prints its error body to stdout, so keep only a numeric id.
+  if ! list=$(gh api "repos/$repo/rulesets" --jq '.[] | select(.name=="main-protection") | .id' 2>/dev/null); then
+    echo "  Rulesets need a public repo or a paid plan for private ones; main is unprotected." >&2
+    echo "Done."
+    exit 0
+  fi
+  id=$(printf '%s\n' "$list" | grep -E '^[0-9]+$' | head -1 || true)
   if [ -n "$id" ]; then
     echo "$body" | gh api -X PUT "repos/$repo/rulesets/$id" --input - >/dev/null
   elif ! echo "$body" | gh api -X POST "repos/$repo/rulesets" --input - >/dev/null; then
