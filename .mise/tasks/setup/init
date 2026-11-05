@@ -37,6 +37,7 @@ NAME="$name" MODULE="$module" SLUG="$slug" perl -pi -e '
 
 if [ -n "$desc" ]; then
   DESC="$desc" perl -pi -e 's/^description = ".*"$/description = "$ENV{DESC}"/' pyproject.toml
+  DESC="$desc" perl -pi -e 's/One-line description of [\w-]+\./$ENV{DESC}/g' $files
 fi
 
 # Drop the template-only README section and this task.
