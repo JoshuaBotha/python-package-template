@@ -1,0 +1,6 @@
+[tools]
+python = "3.13"
+uv = "latest"
+
+[env]
+# Project-wide env vars go here, so every `mise run` task (and CI) sees them.

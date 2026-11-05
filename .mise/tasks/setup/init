@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#MISE description="One-off: rename the template's my-package to your package, then delete this task"
+#USAGE arg "<name>" help="Distribution name, e.g. my-tool (import name becomes my_tool)"
+#USAGE flag "--description <text>" help="One-line project description"
+set -euo pipefail
+
+name=${usage_name:?}
+desc=${usage_description:-}
+
+if ! [[ "$name" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]]; then
+  echo "Name must be lowercase kebab-case, e.g. my-tool" >&2
+  exit 1
+fi
+if [ ! -d src/my_package ]; then
+  echo "Already initialised (src/my_package not found)" >&2
+  exit 1
+fi
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Working tree not clean; commit or stash first" >&2
+  exit 1
+fi
+
+module=${name//-/_}
+# owner/repo from the origin remote, if any; docs and URLs point there
+slug=$(git remote get-url origin 2>/dev/null | sed -E 's#^.*github\.com[:/]##; s#\.git$##' || true)
+[ -n "$slug" ] || slug="JoshuaBotha/$name"
+
+git mv src/my_package "src/$module"
+
+files=$(git ls-files | grep -vE '^(uv\.lock|LICENSE|\.mise/tasks/setup/init)$')
+# Order matters: the repo slug first, then the kebab name, then the module name.
+NAME="$name" MODULE="$module" SLUG="$slug" perl -pi -e '
+  s#JoshuaBotha/my-package#$ENV{SLUG}#g;
+  s#my-package#$ENV{NAME}#g;
+  s#my_package#$ENV{MODULE}#g;
+' $files
+
+if [ -n "$desc" ]; then
+  DESC="$desc" perl -pi -e 's/^description = ".*"$/description = "$ENV{DESC}"/' pyproject.toml
+fi
+
+# Drop the template-only README section and this task.
+perl -0pi -e 's/<!-- template:start -->.*?<!-- template:end -->\n*//s' README.md
+git rm -q .mise/tasks/setup/init
+
+uv lock
+uv sync
+
+echo "Initialised $name (import $module, repo $slug)."
+echo "Next: review 'git diff', commit, then 'mise run repo:settings' once pushed."

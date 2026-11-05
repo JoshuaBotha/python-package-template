@@ -1,0 +1,12 @@
+.venv/
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+.claude/worktrees/
+
+# Local agent config (not part of the project)
+.scratch/
+CLAUDE.local.md

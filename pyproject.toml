@@ -1,0 +1,55 @@
+[project]
+name = "my-package"
+version = "0.0.0"
+description = "One-line description of my-package."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Joshua Botha" }]
+requires-python = ">=3.13"
+keywords = ["python"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/JoshuaBotha/my-package"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4",
+    "pytest>=8",
+    "pytest-timeout>=2.4",
+    "ruff>=0.17",
+    "ty>=0.0.97",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/my_package"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Hang diagnostics: dump every thread's stack at 60 s (non-fatal), kill the
+# run at 180 s so CI fails fast instead of hanging.
+faulthandler_timeout = 60
+timeout = 180
+timeout_method = "thread"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.ty.src]
+include = ["src", "tests"]

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#MISE description="Fresh clone to ready for dev work (idempotent)"
+set -euo pipefail
+
+echo "==> Installing tools (python, uv)"
+mise install
+
+echo "==> Syncing dependencies (editable package + dev group)"
+uv sync
+
+echo "==> Installing git pre-commit hooks"
+uv run pre-commit install
+
+echo "Ready. Try: mise run test"

@@ -1,0 +1,32 @@
+name: Release
+
+# Releasing = bump `version` in pyproject.toml and merge to main. This tags
+# vX.Y.Z and publishes the GitHub Release unless it is already published.
+# To retry a failed run (or release after a fix that didn't touch
+# pyproject.toml), use "Run workflow" on main.
+on:
+  push:
+    branches: [main]
+    paths: [pyproject.toml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
+      - run: mise run release:publish
+        env:
+          GH_TOKEN: ${{ github.token }}
